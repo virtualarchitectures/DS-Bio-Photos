@@ -1,0 +1,10 @@
+[project]
+name = "ds-bio-photos"
+version = "0.1.0"
+description = "A Python utility for standardising individual headshot photos."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dlib>=19.24.6",
+    "opencv-python>=4.10.0.84",
+]
