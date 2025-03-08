@@ -16,23 +16,16 @@ def calculate_output_size(face, margin_ratio=1.5):
 
 
 def standardize_image(
-    image_path, output_path, output_size=(200, 200), margin_ratio=1.5
+    image, output_path, output_size=(200, 200), margin_ratio=1.5, face=None
 ):
-    # Read the image
-    image = cv2.imread(image_path)
-
-    # Convert to grayscale (standardizing appearance)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Detect faces in the image
-    faces = detector(gray)
-
-    if len(faces) == 0:
-        print(f"No face detected in {image_path}")
-        return
-
-    # Assume the first detected face is the main subject
-    face = faces[0]
+    # If a face is not provided, detect the first face
+    if face is None:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = detector(gray)
+        if len(faces) == 0:
+            print("No face detected.")
+            return
+        face = faces[0]
 
     # Calculate output size based on the face dimensions
     output_width, output_height = calculate_output_size(face, margin_ratio)
@@ -55,24 +48,45 @@ def standardize_image(
     cv2.imwrite(output_path, resized_img)
 
 
-def process_folder(
-    input_folder, output_folder, output_size=(200, 200), margin_ratio=1.5
+def process_multiple_faces(
+    image_path, output_folder, output_size=(200, 200), margin_ratio=1.5
 ):
-    # Ensure the output folder exists
-    os.makedirs(output_folder, exist_ok=True)
+    # Read the image
+    image = cv2.imread(image_path)
 
-    # Iterate over all files in the input folder
-    for filename in os.listdir(input_folder):
-        if filename.lower().endswith((".png", ".jpg", ".jpeg")):
-            input_path = os.path.join(input_folder, filename)
-            output_path = os.path.join(output_folder, filename)
-            standardize_image(input_path, output_path, output_size, margin_ratio)
+    if image is None:
+        print(f"Could not read image: {image_path}")
+        return
+
+    # Convert to grayscale (for face detection)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Detect faces in the image
+    faces = detector(gray)
+
+    if len(faces) == 0:
+        print(f"No face detected in {image_path}")
+        return
+
+    # Process each detected face
+    for idx, face in enumerate(faces):
+        output_path = os.path.join(
+            output_folder, f"face_{idx}_{os.path.basename(image_path)}"
+        )
+        standardize_image(image, output_path, output_size, margin_ratio, face)
 
 
-# Example usage
+# Example usage for multiple faces
 input_folder = "data/input"
 output_folder = "data/output"
 output_size = (300, 300)
 margin_ratio = 2
 
-process_folder(input_folder, output_folder, output_size, margin_ratio)
+# Ensure the output folder exists
+os.makedirs(output_folder, exist_ok=True)
+
+# Process each image to detect multiple faces
+for filename in os.listdir(input_folder):
+    if filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        input_path = os.path.join(input_folder, filename)
+        process_multiple_faces(input_path, output_folder, output_size, margin_ratio)
