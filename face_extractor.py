@@ -65,9 +65,11 @@ def extract_faces(image_path, output_folder, output_size=(200, 200), margin_rati
         logging.info(f"No face detected in {image_path}")
         return
 
+    original_basename, file_extension = os.path.splitext(os.path.basename(image_path))
+
     for idx, face in enumerate(faces):
         output_path = os.path.join(
-            output_folder, f"face_{idx}_{os.path.basename(image_path)}"
+            output_folder, f"{original_basename}_{idx}{file_extension}"
         )
         standardise_image(image, output_path, output_size, margin_ratio, face)
 
