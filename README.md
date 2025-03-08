@@ -1,6 +1,6 @@
 # DS-Bio-Photos
 
-A Python utility for standardising individual headshot photos.
+A Python utility for extracting faces from photos and saving the results as standardised individual headshots.
 
 ## Dependencies
 
