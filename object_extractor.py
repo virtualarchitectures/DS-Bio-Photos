@@ -63,7 +63,7 @@ def extract_objects(
     margin_ratio=1.5,
     confidence_threshold=0.2,
 ):
-    """Extract main object from image and save processed files."""
+    """Extract the most confident main object from an image and save processed files."""
     image = cv2.imread(image_path)
 
     if image is None:
@@ -78,24 +78,29 @@ def extract_objects(
     detections = net.forward()
 
     original_basename, file_extension = os.path.splitext(os.path.basename(image_path))
+    original_basename = original_basename.replace(" ", "_")
+
+    max_confidence = 0
+    best_box = None
 
     for i in range(detections.shape[2]):
         confidence = detections[0, 0, i, 2]
-        if confidence > confidence_threshold:
-            idx = int(detections[0, 0, i, 1])
-            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-            (startX, startY, endX, endY) = box.astype("int")
+        if confidence > max_confidence and confidence > confidence_threshold:
+            max_confidence = confidence
+            best_box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
 
-            output_path = os.path.join(
-                output_folder, f"{original_basename}_{i}{file_extension}"
-            )
-            standardise_image(
-                image,
-                output_path,
-                output_size,
-                margin_ratio,
-                (startX, startY, endX, endY),
-            )
+    if best_box is not None:
+        (startX, startY, endX, endY) = best_box.astype("int")
+        output_path = os.path.join(
+            output_folder, f"{original_basename}_best{file_extension}"
+        )
+        standardise_image(
+            image,
+            output_path,
+            output_size,
+            margin_ratio,
+            (startX, startY, endX, endY),
+        )
 
 
 def main(
